@@ -292,7 +292,7 @@ def play_turn(game_id):
         
         print(f"\n➡️ P{player_num} ({current_user.username}) joue {card} (Joker: {use_joker})")
         
-        # ✅ CORRECTION : Forcer le rafraîchissement de la session
+        #  CORRECTION : Forcer le rafraîchissement de la session
         db.session.expire(game)  # Invalider le cache de l'objet game
         db.session.refresh(game)  # Recharger depuis la DB
         
@@ -316,7 +316,7 @@ def play_turn(game_id):
             print(f"   🆕 Tour {current_turn.turn_number} complet -> nouveau tour")
         else:
             # Tour en cours
-            # Vérifier que le joueur n'a pas déjà joué dans CE tour
+            # Vérifier que le joueur n'a pas déjà joué dans CE tour là UNIQUEMENT PTN
             if player_num == 1 and current_turn.player1_card:
                 print(f"   ❌ P1 a déjà joué {current_turn.player1_card} dans ce tour")
                 return jsonify({'error': 'Vous avez déjà joué dans ce tour'}), 400
@@ -335,7 +335,7 @@ def play_turn(game_id):
             db.session.flush()  # Pour obtenir l'ID immédiatement
             print(f"   ✅ Nouveau tour {turn_number} créé (ID: {current_turn.id})")
         
-        # ✅ RÈGLE SUPPRIMÉE : Plus de validation sur la carte précédente
+        #  RÈGLE SUPPRIMÉE : Plus de validation sur la carte précédente
         print(f"   ✅ Carte {card} acceptée (pas de restriction)")
         
         # Vérifier le Bouffon
