@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Partie en cours - Battle of Roles{% endblock %}
+
+{% block content %}
+<div class="game-container">
+    <!-- Scores -->
+    <div class="scoreboard">
+        <div class="player-score player1-score" id="player1-score">
+            <h3>{{ game.player1.username }}</h3>
+            <div class="score">{{ game.score1 }}</div>
+            <div class="joker-status" id="joker-p1">
+                {% if game.joker_used_p1 %}
+                    🃏 <span class="joker-available" style="color: #ef4444;">Utilisé</span>
+                {% else %}
+                    🃏 <span class="joker-available" style="color: #10b981;">Disponible</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="vs">VS</div>
+        
+        <div class="player-score player2-score" id="player2-score">
+            <h3>{{ game.player2.username }}</h3>
+            <div class="score">{{ game.score2 }}</div>
+            <div class="joker-status" id="joker-p2">
+                {% if game.joker_used_p2 %}
+                    🃏 <span class="joker-available" style="color: #ef4444;">Utilisé</span>
+                {% else %}
+                    🃏 <span class="joker-available" style="color: #10b981;">Disponible</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Zone de jeu centrale -->
+    <div class="play-area">
+        <div class="game-status" id="game-status">
+            En attente des joueurs...
+        </div>
+        
+        <div class="cards-played">
+            <div class="card-slot" id="card-p1">
+                <div class="card card-back">
+                    <div class="card-content">?</div>
+                </div>
+            </div>
+            
+            <div class="card-slot" id="card-p2">
+                <div class="card card-back">
+                    <div class="card-content">?</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="turn-result" id="turn-result"></div>
+    </div>
+    
+    <!-- Cartes du joueur -->
+    <div class="player-hand">
+        <h3>Vos cartes</h3>
+        
+        <div class="hand-cards">
+            <button class="card-button" data-card="Mage" id="btn-mage" type="button">
+                <div class="card card-mage">
+                    <div class="card-image">🔮</div>
+                    <div class="card-name">Mage</div>
+                </div>
+            </button>
+            
+            <button class="card-button" data-card="Chevalier" id="btn-chevalier" type="button">
+                <div class="card card-chevalier">
+                    <div class="card-image">⚔️</div>
+                    <div class="card-name">Chevalier</div>
+                </div>
+            </button>
+            
+            <button class="card-button" data-card="Loup" id="btn-loup" type="button">
+                <div class="card card-loup">
+                    <div class="card-image">🐺</div>
+                    <div class="card-name">Loup</div>
+                </div>
+            </button>
+        </div>
+        
+        <div class="joker-container">
+            <label class="joker-checkbox">
+                <input type="checkbox" id="use-joker">
+                <span>🃏 Utiliser le Bouffon (inverse les règles)</span>
+            </label>
+        </div>
+    </div>
+    
+    <!-- Modal de fin de partie -->
+    <div class="modal" id="end-game-modal" style="display: none;">
+        <div class="modal-content">
+            <h2 id="winner-text"></h2>
+            <div class="final-score">
+                <p><strong>{{ game.player1.username }}:</strong> <span id="final-score1"></span></p>
+                <p><strong>{{ game.player2.username }}:</strong> <span id="final-score2"></span></p>
+            </div>
+            
+            {% if current_user.is_guest %}
+            <div class="guest-conversion">
+                <p>Vous avez joué en tant qu'invité. Créez un compte pour sauvegarder vos victoires !</p>
+                <button class="btn btn-primary" onclick="showConversionForm()">Créer un compte</button>
+            </div>
+            
+            <div class="conversion-form" id="conversion-form" style="display: none;">
+                <input type="text" id="new-username" placeholder="Nom d'utilisateur" class="form-control">
+                <input type="password" id="new-password" placeholder="Mot de passe" class="form-control">
+                <button class="btn btn-primary" onclick="convertAccount()">Valider</button>
+            </div>
+            {% endif %}
+            
+            <button class="btn btn-secondary" onclick="window.location.href='/lobby'">Nouvelle partie</button>
+            <button class="btn btn-secondary" onclick="window.location.href='/'">Accueil</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script id="game-data" 
+        data-game-id="{{ game.id }}" 
+        data-player-num="{{ player_num }}" 
+        data-is-guest="{{ current_user.is_guest|lower }}">
+</script>
+<script src="{{ url_for('static', filename='js/game.js') }}"></script>
+{% endblock %}

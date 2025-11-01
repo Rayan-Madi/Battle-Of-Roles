@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Recherche de partie - Battle of Roles{% endblock %}
+
+{% block content %}
+<div class="lobby-container">
+    <div class="lobby-card">
+        <h2>🔍 Recherche d'adversaire...</h2>
+        
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+        </div>
+        
+        <p class="lobby-message">En attente d'un joueur...</p>
+        
+        <div class="lobby-info">
+            <p>Vous serez automatiquement redirigé quand un adversaire sera trouvé</p>
+            <p id="debug-info" style="font-size: 12px; color: #64748b; margin-top: 10px;"></p>
+        </div>
+        
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary" style="margin-top: 20px;">Annuler</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    //  Récupération correcte du game.id depuis le template
+    var gameId = parseInt('{{ game.id }}', 10);
+    var checkCount = 0;
+    
+    console.log('🎮 Game ID:', gameId);
+    
+    function updateDebugInfo(message) {
+        var debugEl = document.getElementById('debug-info');
+        if (debugEl) {
+            debugEl.textContent = message;
+        }
+    }
+    
+    function checkGameReady() {
+        checkCount++;
+        
+        if (!gameId || gameId === 0 || isNaN(gameId)) {
+            console.error('❌ Game ID invalide:', gameId);
+            updateDebugInfo('Erreur: Game ID invalide. Rechargement...');
+            setTimeout(function() {
+                window.location.href = '/lobby';
+            }, 2000);
+            return;
+        }
+        
+        console.log('🔄 Vérification #' + checkCount + ' pour Game #' + gameId);
+        updateDebugInfo('Vérification #' + checkCount + '...');
+        
+        fetch('/api/check-game-ready/' + gameId)
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                console.log('📡 Réponse:', data);
+                
+                // Si la partie a été supprimée, revenir à l'accueil
+                if (data.deleted) {
+                    console.log('⚠️ Partie supprimée, retour à l\'accueil...');
+                    window.location.href = '/';
+                    return;
+                }
+                
+                if (data.ready) {
+                    console.log('✅ Adversaire trouvé ! Redirection vers Game #' + data.game_id);
+                    updateDebugInfo('Adversaire trouvé ! Démarrage...');
+                    window.location.href = '/game/' + data.game_id;
+                } else {
+                    updateDebugInfo('En attente... (vérification #' + checkCount + ')');
+                    setTimeout(checkGameReady, 2000);
+                }
+            })
+            .catch(function(error) {
+                console.error('❌ Erreur:', error);
+                updateDebugInfo('Erreur: ' + error.message + '. Nouvelle tentative...');
+                setTimeout(checkGameReady, 2000);
+            });
+    }
+    
+    // Démarre la vérification
+    checkGameReady();
+</script>
+{% endblock %}

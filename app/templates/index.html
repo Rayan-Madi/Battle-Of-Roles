@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - Battle of Roles{% endblock %}
+
+{% block content %}
+<div class="home-container">
+    <div class="hero">
+        <h1 class="hero-title">⚔️ Battle of Roles ⚔️</h1>
+        <p class="hero-subtitle">Un duel de cartes stratégique épique</p>
+        
+        {% if current_user.is_authenticated %}
+            {# Utilisateur connecté : afficher le bouton "Jouer" #}
+            <div class="welcome-message">
+                <h2>👋 Bienvenue, {{ current_user.username }} !</h2>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{{ url_for('main.lobby') }}" class="btn btn-primary btn-large">
+                    🎮 Chercher une partie
+                </a>
+                <a href="{{ url_for('main.history') }}" class="btn btn-secondary">
+                    📜 Mon historique
+                </a>
+                <a href="{{ url_for('main.leaderboard') }}" class="btn btn-secondary">
+                    📊 Classement
+                </a>
+                <a href="{{ url_for('main.logout') }}" class="btn btn-ghost">
+                    🚪 Se déconnecter
+                </a>
+            </div>
+        {% else %}
+            {# Utilisateur non connecté : afficher les boutons de connexion #}
+            <div class="action-buttons">
+                <a href="{{ url_for('main.login') }}" class="btn btn-primary">
+                    🔐 Se connecter
+                </a>
+                <a href="{{ url_for('main.register') }}" class="btn btn-secondary">
+                    📝 S'inscrire
+                </a>
+                <a href="{{ url_for('main.guest_login') }}" class="btn btn-guest">
+                    👤 Jouer en invité
+                </a>
+            </div>
+            
+            <div class="leaderboard-link">
+                <a href="{{ url_for('main.leaderboard') }}">📊 Voir le classement</a>
+            </div>
+        {% endif %}
+        
+        <div class="game-rules">
+            <h2>🎮 Règles du jeu</h2>
+            <div class="rules-grid">
+                <div class="rule-card">
+                    <h3>🔮 Ordre Normal</h3>
+                    <ul>
+                        <li>🐺 Loup bat 🔮 Mage</li>
+                        <li>🔮 Mage bat ⚔️ Chevalier</li>
+                        <li>⚔️ Chevalier bat 🐺 Loup</li>
+                    </ul>
+                </div>
+                
+                <div class="rule-card joker-card">
+                    <h3>🃏 Avec le Bouffon</h3>
+                    <p class="joker-warning">Ordre inversé !</p>
+                    <ul>
+                        <li>🐺 Loup perd contre 🔮 Mage</li>
+                        <li>🔮 Mage perd contre ⚔️ Chevalier</li>
+                        <li>⚔️ Chevalier perd contre 🐺 Loup</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="other-rules">
+                <h3>📋 Règles supplémentaires</h3>
+                <ul>
+                    <li>🃏 Le Bouffon ne peut être joué qu'une seule fois</li>
+                    <li>🏆 Premier à 3 points gagne</li>
+                    <li>⚡ Choisissez votre carte à chaque tour</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.welcome-message {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+}
+
+.welcome-message h2 {
+    color: white;
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.btn-large {
+    font-size: 1.5rem;
+    padding: 1.2rem 3rem;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 12px 24px rgba(16, 185, 129, 0.5);
+    }
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 2px solid #64748b;
+    color: #64748b;
+}
+
+.btn-ghost:hover {
+    background: #64748b;
+    color: white;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Classement - Battle of Roles{% endblock %}
+
+{% block content %}
+<div class="leaderboard-container">
+    <h2>🏆 Classement Global</h2>
+    
+    <div class="leaderboard-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rang</th>
+                    <th>Joueur</th>
+                    <th>Victoires</th>
+                    <th>Parties jouées</th>
+                    <th>Ratio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr {% if current_user.is_authenticated and user.id == current_user.id %}class="current-user"{% endif %}>
+                    <td class="rank">
+                        {% if loop.index == 1 %}🥇
+                        {% elif loop.index == 2 %}🥈
+                        {% elif loop.index == 3 %}🥉
+                        {% else %}{{ loop.index }}{% endif %}
+                    </td>
+                    <td class="username">{{ user.username }}</td>
+                    <td class="wins">{{ user.wins }}</td>
+                    <td class="games">{{ user.games_played }}</td>
+                    <td class="ratio">
+                        {% if user.games_played > 0 %}
+                            {{ "%.1f"|format((user.wins / user.games_played * 100)) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="no-data">Aucun joueur dans le classement</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="leaderboard-actions">
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Retour</a>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('main.lobby') }}" class="btn btn-primary">Jouer</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Historique - Battle of Roles{% endblock %}
+
+{% block content %}
+<div class="history-container">
+    <div class="history-header">
+        <h1>📜 Historique de vos parties</h1>
+        <a href="{{ url_for('main.lobby') }}" class="btn btn-primary">Nouvelle partie</a>
+    </div>
+    
+    {% if games %}
+        <div class="games-list">
+            {% for game in games %}
+                <div class="game-card">
+                    <div class="game-header">
+                        <span class="game-id">Partie #{{ game.id }}</span>
+                        <span class="game-date">{{ game.finished_at.strftime('%d/%m/%Y %H:%M') if game.finished_at else 'En cours' }}</span>
+                    </div>
+                    
+                    <div class="game-players">
+                        <div class="player {% if game.score1 >= 3 %}winner{% endif %}">
+                            <span class="player-name">{{ game.player1.username }}</span>
+                            <span class="player-score">{{ game.score1 }}</span>
+                        </div>
+                        
+                        <span class="vs">VS</span>
+                        
+                        <div class="player {% if game.score2 >= 3 %}winner{% endif %}">
+                            <span class="player-name">{{ game.player2.username if game.player2 else 'Abandonné' }}</span>
+                            <span class="player-score">{{ game.score2 }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="game-result">
+                        {% if game.score1 >= 3 %}
+                            {% if game.player1_id == current_user.id %}
+                                <span class="result-win">🎉 Victoire</span>
+                            {% else %}
+                                <span class="result-loss">😢 Défaite</span>
+                            {% endif %}
+                        {% elif game.score2 >= 3 %}
+                            {% if game.player2_id == current_user.id %}
+                                <span class="result-win">🎉 Victoire</span>
+                            {% else %}
+                                <span class="result-loss">😢 Défaite</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="result-draw">⚖️ Partie inachevée</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-games">
+            <p>😊 Vous n'avez pas encore terminé de parties</p>
+            <p>Lancez-vous dans l'aventure !</p>
+            <a href="{{ url_for('main.lobby') }}" class="btn btn-primary">Jouer maintenant</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.history-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.history-header h1 {
+    margin: 0;
+    color: #1e293b;
+}
+
+.games-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.game-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.game-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.game-id {
+    font-weight: bold;
+    color: #3b82f6;
+}
+
+.game-date {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.game-players {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
+
+.player.winner .player-name {
+    color: #10b981;
+    font-weight: bold;
+}
+
+.player-name {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.player-score {
+    font-size: 32px;
+    font-weight: bold;
+    color: #1e293b;
+}
+
+.vs {
+    font-weight: bold;
+    color: #94a3b8;
+    margin: 0 20px;
+}
+
+.game-result {
+    text-align: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.result-win {
+    color: #10b981;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.result-loss {
+    color: #ef4444;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.result-draw {
+    color: #94a3b8;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.no-games {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.no-games p {
+    font-size: 18px;
+    color: #64748b;
+    margin: 10px 0;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
+}
+</style>
+{% endblock %}

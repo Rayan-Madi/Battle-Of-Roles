@@ -1,0 +1,17 @@
+{# Composant réutilisable pour afficher une carte #}
+<div class="card card-{{ card_type|lower }}">
+    <div class="card-image">
+        {% if card_type == 'Mage' %}
+            🔮
+        {% elif card_type == 'Chevalier' %}
+            ⚔️
+        {% elif card_type == 'Loup' %}
+            🐺
+        {% elif card_type == 'Bouffon' %}
+            🃏
+        {% else %}
+            ❓
+        {% endif %}
+    </div>
+    <div class="card-name">{{ card_type }}</div>
+</div>

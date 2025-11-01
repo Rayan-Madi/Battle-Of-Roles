@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion - Battle of Roles{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card">
+        <h2>🔐 Connexion</h2>
+        
+        <form method="POST" action="{{ url_for('main.login') }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-group">
+                {{ form.username.label }}
+                {{ form.username(class="form-control") }}
+                {% if form.username.errors %}
+                    <div class="error-message">
+                        {% for error in form.username.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.password.label }}
+                {{ form.password(class="form-control") }}
+                {% if form.password.errors %}
+                    <div class="error-message">
+                        {% for error in form.password.errors %}
+                            <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="form-actions">
+                {{ form.submit(class="btn btn-primary btn-block") }}
+            </div>
+        </form>
+        
+        <div class="form-footer">
+            <p>Pas encore de compte ? <a href="{{ url_for('main.register') }}">S'inscrire</a></p>
+            <p>Ou <a href="{{ url_for('main.guest_login') }}">jouer en invité</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
