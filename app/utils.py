@@ -15,9 +15,9 @@ RULES_NORMAL = {
 
 # Règles inversées (quand Bouffon est utilisé)
 RULES_INVERTED = {
-    'Loup': 'Chevalier',  # Loup perd contre Chevalier (bat par Chevalier)
-    'Mage': 'Loup',       # Mage perd contre Loup
-    'Chevalier': 'Mage'   # Chevalier perd contre Mage
+    'Loup': 'Chevalier',  # Loup gagne contre Chevalier 
+    'Mage': 'Loup',       # Mage gagne contre Loup
+    'Chevalier': 'Mage'   # Chevalier gagne contre Mage
 }
 
 
@@ -54,7 +54,7 @@ def calculate_winner(card1, card2, joker_active=False):
         int: 1 si joueur 1 gagne, 2 si joueur 2 gagne, 0 si égalité
     """
     if card1 == card2:
-        return 0  # Égalité
+        return 0  # Égalité / Match Nul
     
     # Sélection des règles
     rules = RULES_INVERTED if joker_active else RULES_NORMAL
@@ -65,7 +65,7 @@ def calculate_winner(card1, card2, joker_active=False):
     elif rules.get(card2) == card1:
         return 2
     
-    return 0  # Ne devrait pas arriver
+    return 0  # Ne devrait pas arriver 
 
 
 def get_last_card_for_player(game, player_num):
