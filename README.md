@@ -16,7 +16,6 @@ Quand le Bouffon est joué, l'ordre est **inversé** :
 - ⚔️ **Chevalier** perd contre 🐺 **Loup**
 
 ### Règles supplémentaires
-- ❌ Un joueur ne peut pas jouer deux fois la même carte d'affilée
 - 🃏 Le Bouffon ne peut être utilisé qu'**une seule fois** par partie
 - 🏆 Le premier joueur à **3 points** gagne la partie
 
