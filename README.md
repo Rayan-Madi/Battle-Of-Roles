@@ -31,7 +31,7 @@ Quand le Bouffon est joué, l'ordre est **inversé** :
 1. **Cloner le projet**
 ```bash
 git clone 
-cd flask_card_game
+cd Battle-Of-Roles
 ```
 
 2. **Créer un environnement virtuel**
