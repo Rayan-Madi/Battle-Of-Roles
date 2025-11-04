@@ -3,21 +3,20 @@ Logique du jeu Battle of Roles
 Règles, validation, calcul des gagnants
 """
 
-# Cartes disponibles
+
 CARDS = ['Mage', 'Chevalier', 'Loup']
 
-# Règles normales
+
 RULES_NORMAL = {
     'Loup': 'Mage',      # Loup bat Mage
     'Mage': 'Chevalier', # Mage bat Chevalier
     'Chevalier': 'Loup'  # Chevalier bat Loup
 }
 
-# Règles inversées (quand Bouffon est utilisé)
 RULES_INVERTED = {
-    'Loup': 'Chevalier',  # Loup gagne contre Chevalier 
-    'Mage': 'Loup',       # Mage gagne contre Loup
-    'Chevalier': 'Mage'   # Chevalier gagne contre Mage
+    'Loup': 'Chevalier',  
+    'Mage': 'Loup',       
+    'Chevalier': 'Mage'   
 }
 
 
@@ -33,10 +32,10 @@ def validate_move(previous_card, current_card):
         bool: True si le coup est valide, False sinon
     """
     if previous_card is None:
-        return True  # Premier tour, toute carte est valide
+        return True  
     
     if current_card not in CARDS:
-        return False  # Carte invalide
+        return False  
     
     return previous_card != current_card
 
@@ -56,16 +55,14 @@ def calculate_winner(card1, card2, joker_active=False):
     if card1 == card2:
         return 0  # Égalité / Match Nul
     
-    # Sélection des règles
     rules = RULES_INVERTED if joker_active else RULES_NORMAL
     
-    # Vérifie si card1 bat card2
     if rules.get(card1) == card2:
         return 1
     elif rules.get(card2) == card1:
         return 2
     
-    return 0  # Ne devrait pas arriver 
+    return 0  # Ne devrait SURTOUT VRAIMENT pas arriver 
 
 
 def get_last_card_for_player(game, player_num):
@@ -81,7 +78,6 @@ def get_last_card_for_player(game, player_num):
     """
     from app.models import Turn
     
-    #  CORRECTION : Récupérer TOUS les tours complétés du plus récent au plus ancien
     completed_turns = Turn.query.filter(
         Turn.game_id == game.id,
         Turn.player1_card.isnot(None),
@@ -89,9 +85,9 @@ def get_last_card_for_player(game, player_num):
     ).order_by(Turn.id.desc()).all()
     
     if not completed_turns:
-        return None  # Aucun tour complété
+        return None  
     
-    # Retourner la carte du joueur dans le dernier tour complété
+    
     last_completed = completed_turns[0]
     
     if player_num == 1:

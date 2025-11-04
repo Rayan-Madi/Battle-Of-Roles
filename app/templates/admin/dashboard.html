@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Battle of Roles{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h1>🎮 Tableau de bord administrateur</h1>
+    
+    <div class="admin-nav">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="active">📊 Dashboard</a>
+        <a href="{{ url_for('main.admin_users') }}">👥 Utilisateurs</a>
+        <a href="{{ url_for('main.admin_games') }}">🎲 Parties</a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value">{{ total_users }}</div>
+            <div class="stat-label">Utilisateurs totaux</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">{{ real_users }}</div>
+            <div class="stat-label">Comptes enregistrés</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">👻</div>
+            <div class="stat-value">{{ guests }}</div>
+            <div class="stat-label">Invités</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">⚙️</div>
+            <div class="stat-value">{{ admins }}</div>
+            <div class="stat-label">Administrateurs</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-value">{{ total_games }}</div>
+            <div class="stat-label">Parties terminées</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">⚔️</div>
+            <div class="stat-value">{{ active_games }}</div>
+            <div class="stat-label">Parties en cours</div>
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <h2>📝 Derniers utilisateurs inscrits</h2>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom d'utilisateur</th>
+                        <th>Type</th>
+                        <th>Admin</th>
+                        <th>Victoires</th>
+                        <th>Parties</th>
+                        <th>Inscrit le</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in recent_users %}
+                    <tr>
+                        <td>#{{ user.id }}</td>
+                        <td>
+                            <strong>{{ user.username }}</strong>
+                            {% if user.id == current_user.id %}
+                                <span class="badge badge-info">Vous</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_guest %}
+                                <span class="badge badge-secondary">Invité</span>
+                            {% else %}
+                                <span class="badge badge-success">Membre</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_admin %}
+                                <span class="badge badge-danger">Admin</span>
+                            {% else %}
+                                <span class="badge badge-light">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.wins }}</td>
+                        <td>{{ user.games_played }}</td>
+                        <td>{{ user.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="admin-section">
+        <h2>🎲 Dernières parties terminées</h2>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Joueur 1</th>
+                        <th>Score</th>
+                        <th>Joueur 2</th>
+                        <th>Gagnant</th>
+                        <th>Terminée le</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for game in recent_games %}
+                    <tr>
+                        <td>#{{ game.id }}</td>
+                        <td>{{ game.player1.username }}</td>
+                        <td class="score">{{ game.score1 }} - {{ game.score2 }}</td>
+                        <td>{{ game.player2.username if game.player2 else "?" }}</td>
+                        <td>
+                            {% if game.score1 > game.score2 %}
+                                <span class="badge badge-success">{{ game.player1.username }}</span>
+                            {% elif game.score2 > game.score1 %}
+                                <span class="badge badge-success">{{ game.player2.username }}</span>
+                            {% else %}
+                                <span class="badge badge-secondary">Égalité</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ game.finished_at.strftime('%d/%m/%Y %H:%M') if game.finished_at else "-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+}
+
+.admin-nav a {
+    padding: 10px 20px;
+    background: #2a2a2a;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px 5px 0 0;
+    transition: background 0.3s;
+}
+
+.admin-nav a:hover {
+    background: #3a3a3a;
+}
+
+.admin-nav a.active {
+    background: #ff6b6b;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.stat-card:nth-child(2) {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.stat-card:nth-child(3) {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.stat-card:nth-child(4) {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.stat-card:nth-child(5) {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.stat-card:nth-child(6) {
+    background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+}
+
+.stat-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.admin-section {
+    background: #1a1a1a;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.admin-section h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #ff6b6b;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #2a2a2a;
+}
+
+.admin-table th {
+    background: #333;
+    padding: 12px;
+    text-align: left;
+    color: #ff6b6b;
+    font-weight: bold;
+}
+
+.admin-table td {
+    padding: 12px;
+    border-top: 1px solid #333;
+}
+
+.admin-table tbody tr:hover {
+    background: #353535;
+}
+
+.badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-success {
+    background: #28a745;
+    color: white;
+}
+
+.badge-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.badge-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.badge-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.badge-light {
+    background: #444;
+    color: #888;
+}
+
+.score {
+    font-weight: bold;
+    font-size: 16px;
+    color: #ff6b6b;
+}
+</style>
+{% endblock %}

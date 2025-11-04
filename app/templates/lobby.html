@@ -25,7 +25,6 @@
 
 {% block scripts %}
 <script>
-    //  Récupération correcte du game.id depuis le template
     var gameId = parseInt('{{ game.id }}', 10);
     var checkCount = 0;
     
@@ -63,7 +62,6 @@
             .then(function(data) {
                 console.log('📡 Réponse:', data);
                 
-                // Si la partie a été supprimée, revenir à l'accueil
                 if (data.deleted) {
                     console.log('⚠️ Partie supprimée, retour à l\'accueil...');
                     window.location.href = '/';
@@ -86,7 +84,6 @@
             });
     }
     
-    // Démarre la vérification
     checkGameReady();
 </script>
 {% endblock %}

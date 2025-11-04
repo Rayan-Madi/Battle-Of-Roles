@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des utilisateurs - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h1>👥 Gestion des utilisateurs</h1>
+    
+    <div class="admin-nav">
+        <a href="{{ url_for('main.admin_dashboard') }}">📊 Dashboard</a>
+        <a href="{{ url_for('main.admin_users') }}" class="active">👥 Utilisateurs</a>
+        <a href="{{ url_for('main.admin_games') }}">🎲 Parties</a>
+    </div>
+
+    <div class="admin-section">
+        <h2>Liste complète des utilisateurs ({{ users|length }})</h2>
+        
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom d'utilisateur</th>
+                        <th>Type</th>
+                        <th>Admin</th>
+                        <th>Victoires</th>
+                        <th>Parties</th>
+                        <th>Inscrit le</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>#{{ user.id }}</td>
+                        <td>
+                            <strong>{{ user.username }}</strong>
+                            {% if user.id == current_user.id %}
+                                <span class="badge badge-info">Vous</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_guest %}
+                                <span class="badge badge-secondary">Invité</span>
+                            {% else %}
+                                <span class="badge badge-success">Membre</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_admin %}
+                                <span class="badge badge-danger">✓ Admin</span>
+                            {% else %}
+                                <span class="badge badge-light">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.wins }}</td>
+                        <td>{{ user.games_played }}</td>
+                        <td>{{ user.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td class="actions">
+                            {% if user.id != current_user.id %}
+                                <form method="POST" action="{{ url_for('main.toggle_admin', user_id=user.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn-admin-toggle" 
+                                            onclick="return confirm('Modifier les droits admin de {{ user.username }} ?')">
+                                        {% if user.is_admin %}
+                                            ⬇️ Retirer admin
+                                        {% else %}
+                                            ⬆️ Promouvoir admin
+                                        {% endif %}
+                                    </button>
+                                </form>
+                                
+                                <form method="POST" action="{{ url_for('main.delete_user', user_id=user.id) }}" style="display: inline;">
+                                    <button type="submit" class="btn-delete" 
+                                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer {{ user.username }} ?')">
+                                        🗑️ Supprimer
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+}
+
+.admin-nav a {
+    padding: 10px 20px;
+    background: #2a2a2a;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px 5px 0 0;
+    transition: background 0.3s;
+}
+
+.admin-nav a:hover {
+    background: #3a3a3a;
+}
+
+.admin-nav a.active {
+    background: #ff6b6b;
+}
+
+.admin-section {
+    background: #1a1a1a;
+    padding: 30px;
+    border-radius: 10px;
+}
+
+.admin-section h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #ff6b6b;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #2a2a2a;
+}
+
+.admin-table th {
+    background: #333;
+    padding: 12px;
+    text-align: left;
+    color: #ff6b6b;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.admin-table td {
+    padding: 12px;
+    border-top: 1px solid #333;
+}
+
+.admin-table tbody tr:hover {
+    background: #353535;
+}
+
+.badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-success {
+    background: #28a745;
+    color: white;
+}
+
+.badge-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.badge-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.badge-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.badge-light {
+    background: #444;
+    color: #888;
+}
+
+.actions {
+    white-space: nowrap;
+}
+
+.btn-admin-toggle, .btn-delete {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-right: 5px;
+    transition: all 0.3s;
+}
+
+.btn-admin-toggle {
+    background: #ffc107;
+    color: #000;
+}
+
+.btn-admin-toggle:hover {
+    background: #ffcd38;
+    transform: translateY(-2px);
+}
+
+.btn-delete {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+.text-muted {
+    color: #888;
+}
+</style>
+{% endblock %}

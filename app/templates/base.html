@@ -15,6 +15,9 @@
                     <span class="username">{{ current_user.username }}</span>
                     <a href="{{ url_for('main.leaderboard') }}">Classement</a>
                     <a href="{{ url_for('main.history') }}">Historique</a>
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('main.admin_dashboard') }}" style="color: #ff6b6b; font-weight: bold;">⚙️ Admin</a>
+                    {% endif %}
                     <a href="{{ url_for('main.logout') }}">Déconnexion</a>
                 {% else %}
                     <a href="{{ url_for('main.login') }}">Connexion</a>

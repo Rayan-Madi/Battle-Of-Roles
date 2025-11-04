@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Script de gestion pour Battle of Roles
 Commandes utiles pour gérer la base de données et l'application

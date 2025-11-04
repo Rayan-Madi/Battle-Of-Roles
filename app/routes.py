@@ -1,7 +1,7 @@
 """
 Routes principales de l'application Battle of Roles
 """
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, session, abort
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.models import User, Game, Turn
@@ -11,9 +11,29 @@ from datetime import datetime
 import random
 import string
 import traceback
+from functools import wraps
 
 bp = Blueprint('main', __name__)
 
+
+# ============================================
+# DÉCORATEUR ADMIN
+# ============================================
+
+def admin_required(f):
+    """Décorateur pour protéger les routes admin"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            flash('Accès réservé aux administrateurs', 'danger')
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+# ============================================
+# ROUTES PUBLIQUES
+# ============================================
 
 @bp.route('/')
 def index():
@@ -100,11 +120,14 @@ def logout():
     return response
 
 
+# ============================================
+# ROUTES DE JEU
+# ============================================
+
 @bp.route('/lobby')
 @login_required
 def lobby():
     """Lobby de recherche de partie"""
-    # 1. Nettoyer les anciennes parties en attente du joueur
     old_waiting = Game.query.filter_by(
         player1_id=current_user.id,
         status='waiting'
@@ -116,7 +139,6 @@ def lobby():
     if old_waiting:
         db.session.commit()
     
-    # 2. Vérifier si le joueur a déjà une partie en cours
     ongoing_game = Game.query.filter(
         ((Game.player1_id == current_user.id) | (Game.player2_id == current_user.id)),
         Game.status == 'ongoing'
@@ -125,7 +147,6 @@ def lobby():
     if ongoing_game:
         return redirect(url_for('main.game', game_id=ongoing_game.id))
     
-    # 3. Chercher une partie en attente d'un AUTRE joueur
     waiting_game = Game.query.filter(
         Game.status == 'waiting',
         Game.player1_id != current_user.id,
@@ -139,7 +160,6 @@ def lobby():
         flash('Adversaire trouvé ! La partie commence.', 'success')
         return redirect(url_for('main.game', game_id=waiting_game.id))
     
-    # 4. Créer une nouvelle partie en attente
     new_game = Game(
         player1_id=current_user.id,
         player2_id=None,
@@ -211,13 +231,10 @@ def game_state(game_id):
         
         player_num = 1 if current_user.id == game.player1_id else 2
         
-        #  CORRECTION CRITIQUE : Forcer le rafraîchissement depuis la DB
-        db.session.expire_all()  # Invalide le cache SQLAlchemy
+        db.session.expire_all()
         
-        # Récupérer le dernier tour DIRECTEMENT depuis la DB
         last_turn = Turn.query.filter_by(game_id=game_id).order_by(Turn.id.desc()).first()
         
-        # Détermine qui est attendu
         waiting_for = None
         if game.status == 'ongoing':
             if not last_turn:
@@ -292,31 +309,24 @@ def play_turn(game_id):
         
         print(f"\n➡️ P{player_num} ({current_user.username}) joue {card} (Joker: {use_joker})")
         
-        #  CORRECTION : Forcer le rafraîchissement de la session
-        db.session.expire(game)  # Invalider le cache de l'objet game
-        db.session.refresh(game)  # Recharger depuis la DB
+        db.session.expire(game)
+        db.session.refresh(game)
         
-        # Récupérer le dernier tour DIRECTEMENT depuis la DB (pas via la relation)
         current_turn = Turn.query.filter_by(game_id=game.id).order_by(Turn.id.desc()).first()
         
         print(f"   📊 Dernier tour trouvé: {current_turn}")
         if current_turn:
             print(f"      Turn #{current_turn.turn_number}: P1={current_turn.player1_card}, P2={current_turn.player2_card}")
         
-        #  LOGIQUE : Déterminer si on doit créer un nouveau tour
         create_new_turn = False
         
         if not current_turn:
-            # Aucun tour, on en crée un
             create_new_turn = True
             print(f"   🆕 Aucun tour existant -> création")
         elif current_turn.player1_card and current_turn.player2_card:
-            # Tour complet, on en crée un nouveau
             create_new_turn = True
             print(f"   🆕 Tour {current_turn.turn_number} complet -> nouveau tour")
         else:
-            # Tour en cours
-            # Vérifier que le joueur n'a pas déjà joué dans CE tour là UNIQUEMENT PTN
             if player_num == 1 and current_turn.player1_card:
                 print(f"   ❌ P1 a déjà joué {current_turn.player1_card} dans ce tour")
                 return jsonify({'error': 'Vous avez déjà joué dans ce tour'}), 400
@@ -327,24 +337,20 @@ def play_turn(game_id):
             
             print(f"   ♻️ Utilisation du tour {current_turn.turn_number} en cours")
         
-        # Créer un nouveau tour si nécessaire
         if create_new_turn:
             turn_number = (current_turn.turn_number if current_turn else 0) + 1
             current_turn = Turn(game_id=game.id, turn_number=turn_number)
             db.session.add(current_turn)
-            db.session.flush()  # Pour obtenir l'ID immédiatement
+            db.session.flush()
             print(f"   ✅ Nouveau tour {turn_number} créé (ID: {current_turn.id})")
         
-        #  RÈGLE SUPPRIMÉE : Plus de validation sur la carte précédente
-        print(f"   ✅ Carte {card} acceptée (pas de restriction)")
+        print(f"   ✅ Carte {card} acceptée")
         
-        # Vérifier le Bouffon
         if use_joker:
             if (player_num == 1 and game.joker_used_p1) or (player_num == 2 and game.joker_used_p2):
                 print("   ❌ Joker déjà utilisé")
                 return jsonify({'error': 'Vous avez déjà utilisé votre Bouffon'}), 400
         
-        # Enregistrer la carte
         if player_num == 1:
             current_turn.player1_card = card
             print(f"   ✅ P1 joue {card} dans tour #{current_turn.turn_number}")
@@ -352,7 +358,6 @@ def play_turn(game_id):
             current_turn.player2_card = card
             print(f"   ✅ P2 joue {card} dans tour #{current_turn.turn_number}")
         
-        # Enregistrer le Bouffon
         if use_joker:
             current_turn.joker_used_by = current_user.id
             if player_num == 1:
@@ -364,7 +369,6 @@ def play_turn(game_id):
         db.session.commit()
         print("   💾 Carte sauvegardée")
         
-        # Si les deux ont joué, calculer le résultat
         if current_turn.player1_card and current_turn.player2_card:
             print(f"   ⚔️ Calcul: {current_turn.player1_card} vs {current_turn.player2_card}")
             joker_active = current_turn.joker_used_by is not None
@@ -372,7 +376,7 @@ def play_turn(game_id):
             
             if winner == 0:
                 print(f"   ⚖️ Égalité ! Score inchangé: {game.score1}-{game.score2}")
-                current_turn.winner_id = None  # Pas de gagnant
+                current_turn.winner_id = None
             elif winner == 1:
                 current_turn.winner_id = game.player1_id
                 update_score(game, 1)
@@ -382,7 +386,6 @@ def play_turn(game_id):
                 update_score(game, 2)
                 print(f"   🏆 Vainqueur: P2. Score: {game.score1}-{game.score2}")
             
-            # Vérifier victoire finale
             final_winner_id = check_victory(game)
             if final_winner_id:
                 game.status = 'finished'
@@ -458,3 +461,103 @@ def convert_guest():
     
     flash('Votre compte a été créé avec succès !', 'success')
     return jsonify({'success': True, 'message': 'Compte créé'})
+
+
+# ============================================
+# ROUTES ADMIN
+# ============================================
+
+@bp.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    """Tableau de bord administrateur"""
+    total_users = User.query.count()
+    real_users = User.query.filter_by(is_guest=False).count()
+    total_games = Game.query.filter_by(status='finished').count()
+    active_games = Game.query.filter_by(status='ongoing').count()
+    guests = User.query.filter_by(is_guest=True).count()
+    admins = User.query.filter_by(is_admin=True).count()
+    
+    recent_users = User.query.order_by(User.created_at.desc()).limit(10).all()
+    recent_games = Game.query.filter_by(status='finished').order_by(Game.finished_at.desc()).limit(10).all()
+    
+    return render_template('admin/dashboard.html',
+                         total_users=total_users,
+                         real_users=real_users,
+                         total_games=total_games,
+                         active_games=active_games,
+                         guests=guests,
+                         admins=admins,
+                         recent_users=recent_users,
+                         recent_games=recent_games)
+
+
+@bp.route('/admin/users')
+@login_required
+@admin_required
+def admin_users():
+    """Liste de tous les utilisateurs"""
+    users = User.query.order_by(User.created_at.desc()).all()
+    return render_template('admin/users.html', users=users)
+
+
+@bp.route('/admin/games')
+@login_required
+@admin_required
+def admin_games():
+    """Liste de toutes les parties"""
+    games = Game.query.order_by(Game.created_at.desc()).limit(100).all()
+    return render_template('admin/games.html', games=games)
+
+
+@bp.route('/admin/user/<int:user_id>/toggle-admin', methods=['POST'])
+@login_required
+@admin_required
+def toggle_admin(user_id):
+    """Activer/désactiver le statut admin d'un utilisateur"""
+    user = User.query.get_or_404(user_id)
+    
+    if user.id == current_user.id:
+        flash('Vous ne pouvez pas modifier vos propres droits admin', 'warning')
+        return redirect(url_for('main.admin_users'))
+    
+    user.is_admin = not user.is_admin
+    db.session.commit()
+    
+    status = "activé" if user.is_admin else "désactivé"
+    flash(f'Statut admin {status} pour {user.username}', 'success')
+    return redirect(url_for('main.admin_users'))
+
+
+@bp.route('/admin/user/<int:user_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    """Supprimer un utilisateur"""
+    user = User.query.get_or_404(user_id)
+    
+    if user.id == current_user.id:
+        flash('Vous ne pouvez pas supprimer votre propre compte', 'danger')
+        return redirect(url_for('main.admin_users'))
+    
+    username = user.username
+    db.session.delete(user)
+    db.session.commit()
+    
+    flash(f'Utilisateur {username} supprimé', 'success')
+    return redirect(url_for('main.admin_users'))
+
+
+@bp.route('/admin/game/<int:game_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_game(game_id):
+    """Supprimer une partie"""
+    game = Game.query.get_or_404(game_id)
+    
+    db.session.delete(game)
+    db.session.commit()
+    
+    flash(f'Partie #{game_id} supprimée', 'success')
+    return redirect(url_for('main.admin_games'))

@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des parties - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h1>🎲 Gestion des parties</h1>
+    
+    <div class="admin-nav">
+        <a href="{{ url_for('main.admin_dashboard') }}">📊 Dashboard</a>
+        <a href="{{ url_for('main.admin_users') }}">👥 Utilisateurs</a>
+        <a href="{{ url_for('main.admin_games') }}" class="active">🎲 Parties</a>
+    </div>
+
+    <div class="admin-section">
+        <h2>Liste des parties ({{ games|length }} dernières)</h2>
+        
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Joueur 1</th>
+                        <th>Joueur 2</th>
+                        <th>Score</th>
+                        <th>Statut</th>
+                        <th>Jokers utilisés</th>
+                        <th>Créée le</th>
+                        <th>Terminée le</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for game in games %}
+                    <tr>
+                        <td>#{{ game.id }}</td>
+                        <td>{{ game.player1.username }}</td>
+                        <td>{{ game.player2.username if game.player2 else "En attente..." }}</td>
+                        <td class="score">{{ game.score1 }} - {{ game.score2 }}</td>
+                        <td>
+                            {% if game.status == 'finished' %}
+                                <span class="badge badge-success">✓ Terminée</span>
+                            {% elif game.status == 'ongoing' %}
+                                <span class="badge badge-warning">⚔️ En cours</span>
+                            {% else %}
+                                <span class="badge badge-secondary">⏳ En attente</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="joker-status">
+                                <span class="joker {% if game.joker_used_p1 %}used{% endif %}" title="Joueur 1">
+                                    🃏{% if game.joker_used_p1 %}✓{% endif %}
+                                </span>
+                                <span class="joker {% if game.joker_used_p2 %}used{% endif %}" title="Joueur 2">
+                                    🃏{% if game.joker_used_p2 %}✓{% endif %}
+                                </span>
+                            </div>
+                        </td>
+                        <td>{{ game.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            {% if game.finished_at %}
+                                {{ game.finished_at.strftime('%d/%m/%Y %H:%M') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="actions">
+                            <form method="POST" action="{{ url_for('main.delete_game', game_id=game.id) }}" style="display: inline;">
+                                <button type="submit" class="btn-delete" 
+                                        onclick="return confirm('Supprimer la partie #{{ game.id }} ?')">
+                                    🗑️
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+}
+
+.admin-nav a {
+    padding: 10px 20px;
+    background: #2a2a2a;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px 5px 0 0;
+    transition: background 0.3s;
+}
+
+.admin-nav a:hover {
+    background: #3a3a3a;
+}
+
+.admin-nav a.active {
+    background: #ff6b6b;
+}
+
+.admin-section {
+    background: #1a1a1a;
+    padding: 30px;
+    border-radius: 10px;
+}
+
+.admin-section h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #ff6b6b;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #2a2a2a;
+}
+
+.admin-table th {
+    background: #333;
+    padding: 12px;
+    text-align: left;
+    color: #ff6b6b;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.admin-table td {
+    padding: 12px;
+    border-top: 1px solid #333;
+}
+
+.admin-table tbody tr:hover {
+    background: #353535;
+}
+
+.badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-success {
+    background: #28a745;
+    color: white;
+}
+
+.badge-warning {
+    background: #ffc107;
+    color: #000;
+}
+
+.badge-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.score {
+    font-weight: bold;
+    font-size: 16px;
+    color: #ff6b6b;
+}
+
+.joker-status {
+    display: flex;
+    gap: 5px;
+}
+
+.joker {
+    padding: 2px 5px;
+    border-radius: 5px;
+    background: #333;
+    font-size: 14px;
+}
+
+.joker.used {
+    background: #28a745;
+}
+
+.actions {
+    white-space: nowrap;
+}
+
+.btn-delete {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    background: #dc3545;
+    color: white;
+    transition: all 0.3s;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}
