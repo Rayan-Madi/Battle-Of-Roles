@@ -16,10 +16,6 @@ from functools import wraps
 bp = Blueprint('main', __name__)
 
 
-# ============================================
-# DÉCORATEUR ADMIN
-# ============================================
-
 def admin_required(f):
     """Décorateur pour protéger les routes admin"""
     @wraps(f)
@@ -30,10 +26,6 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
-# ============================================
-# ROUTES PUBLIQUES
-# ============================================
 
 @bp.route('/')
 def index():
@@ -119,10 +111,6 @@ def logout():
     response.set_cookie('session', '', expires=0) 
     return response
 
-
-# ============================================
-# ROUTES DE JEU
-# ============================================
 
 @bp.route('/lobby')
 @login_required
@@ -461,11 +449,6 @@ def convert_guest():
     
     flash('Votre compte a été créé avec succès !', 'success')
     return jsonify({'success': True, 'message': 'Compte créé'})
-
-
-# ============================================
-# ROUTES ADMIN
-# ============================================
 
 @bp.route('/admin')
 @login_required
