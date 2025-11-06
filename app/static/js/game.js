@@ -1,15 +1,9 @@
-/**
- * Logique JavaScript du jeu Battle of Roles
- * Gestion des animations, fetch API, et interactions
- */
-
 let currentGameId = null;
 let currentPlayerNum = null;
 let isGuest = false;
 let pollingInterval = null;
 let lastGameState = null;
 
-// Auto-initialisation au chargement
 window.addEventListener('DOMContentLoaded', function() {
     const gameDataEl = document.getElementById('game-data');
     
@@ -26,9 +20,7 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-/**
- * Initialise le jeu
- */
+
 function initGame(gameId, playerNum, guestStatus) {
     currentGameId = gameId;
     currentPlayerNum = playerNum;
@@ -36,19 +28,13 @@ function initGame(gameId, playerNum, guestStatus) {
     
     console.log('🎮 Initialisation du jeu:', { gameId, playerNum, guestStatus });
     
-    // Attache les événements aux boutons
     attachCardListeners();
     
-    // Démarre le polling pour l'état du jeu
     startPolling();
-    
-    // Charge l'état initial
+
     updateGameState();
 }
 
-/**
- * Attache les listeners aux boutons de cartes
- */
 function attachCardListeners() {
     const cardButtons = document.querySelectorAll('.card-button');
     
@@ -61,7 +47,6 @@ function attachCardListeners() {
         button.addEventListener('click', function(event) {
             event.preventDefault();
             
-            //  Vérifier si le bouton est désactivé AVANT de jouer
             if (this.disabled) {
                 console.log('⚠️ Bouton désactivé, clic ignoré');
                 return;
@@ -76,15 +61,11 @@ function attachCardListeners() {
     console.log('✅ Listeners attachés avec succès');
 }
 
-/**
- * Joue une carte
- */
 async function playCard(card) {
     console.log('🚀 Tentative de jouer la carte:', card);
     
     const useJoker = document.getElementById('use-joker').checked;
     
-    // Désactive temporairement les boutons
     disableAllButtons();
     
     try {
@@ -112,13 +93,10 @@ async function playCard(card) {
             return;
         }
         
-        // Décoche le joker après utilisation
         document.getElementById('use-joker').checked = false;
         
-        // Affiche un message de confirmation
         showTurnMessage('Carte jouée ! En attente de l\'adversaire...');
         
-        //  Met à jour l'état IMMÉDIATEMENT après avoir joué
         setTimeout(function() {
             updateGameState();
         }, 100);
@@ -130,9 +108,6 @@ async function playCard(card) {
     }
 }
 
-/**
- * Met à jour l'état du jeu depuis le serveur
- */
 async function updateGameState() {
     try {
         const response = await fetch('/api/game/' + currentGameId + '/state');
@@ -147,16 +122,13 @@ async function updateGameState() {
         console.log('   ⏳ waiting_for:', gameState.waiting_for);
         console.log('   🎮 currentPlayerNum:', currentPlayerNum);
         
-        // Stocke l'état précédent pour détecter les changements
         const previousState = lastGameState;
         lastGameState = gameState;
         
-        // Met à jour l'affichage
         updateScoreboard(gameState);
         updatePlayArea(gameState, previousState);
         updatePlayerHand(gameState);
         
-        // Vérifie si la partie est terminée
         if (gameState.status === 'finished') {
             stopPolling();
             showEndGameModal(gameState);
@@ -167,9 +139,6 @@ async function updateGameState() {
     }
 }
 
-/**
- * Met à jour le tableau des scores
- */
 function updateScoreboard(gameState) {
     const score1El = document.querySelector('#player1-score .score');
     const score2El = document.querySelector('#player2-score .score');
@@ -192,13 +161,9 @@ function updateScoreboard(gameState) {
     }
 }
 
-/**
- * Met à jour la zone de jeu centrale
- */
 function updatePlayArea(gameState, previousState) {
     const lastTurn = gameState.last_turn;
     
-    // Cas 1 : Aucun tour n'a été joué
     if (!lastTurn) {
         showTurnMessage('Jouez votre première carte !');
         updateCardSlot('card-p1', null, 0);
@@ -209,19 +174,15 @@ function updatePlayArea(gameState, previousState) {
     const p1Id = gameState.player1_id || 0;
     const p2Id = gameState.player2_id || 0;
     
-    // Cas 2 : Le dernier tour est complet (les deux ont joué)
     if (lastTurn.player1_card && lastTurn.player2_card) {
-        // Révéler toutes les cartes
         updateCardSlot('card-p1', lastTurn.player1_card, lastTurn.winner_id === p1Id ? 1 : 0);
         updateCardSlot('card-p2', lastTurn.player2_card, lastTurn.winner_id === p2Id ? 1 : 0);
         
-        // Affiche le résultat si c'est un nouveau tour complet
         if (!previousState || !previousState.last_turn ||
             previousState.last_turn.turn_number !== lastTurn.turn_number) {
             showTurnResult(lastTurn, gameState);
         }
         
-        //  CORRECTION CRITIQUE : Gérer le message selon waiting_for
         if (gameState.waiting_for === 'both') {
             showTurnMessage('Nouveau tour ! Jouez votre carte');
         } else if (gameState.waiting_for === currentPlayerNum) {
@@ -230,9 +191,7 @@ function updatePlayArea(gameState, previousState) {
             showTurnMessage('En attente de l\'adversaire...');
         }
     } 
-    // Cas 3 : Un seul joueur a joué
     else {
-        // Affiche ma carte si j'ai joué, cache celle de l'adversaire
         if (currentPlayerNum === 1) {
             updateCardSlot('card-p1', lastTurn.player1_card, 0);
             updateCardSlot('card-p2', null, 0);
@@ -241,7 +200,6 @@ function updatePlayArea(gameState, previousState) {
             updateCardSlot('card-p2', lastTurn.player2_card, 0);
         }
         
-        // Gestion des messages
         if (gameState.waiting_for === currentPlayerNum) {
             showTurnMessage('À votre tour !');
         } else {
@@ -250,20 +208,15 @@ function updatePlayArea(gameState, previousState) {
     }
 }
 
-/**
- * Met à jour une carte dans la zone de jeu
- */
 function updateCardSlot(slotId, cardName, isWinner) {
     const slot = document.getElementById(slotId);
     if (!slot) return;
     
     if (!cardName) {
-        // Carte cachée
         slot.innerHTML = '<div class="card card-back"><div class="card-content">?</div></div>';
         return;
     }
     
-    // Carte révélée
     const cardClass = 'card-' + cardName.toLowerCase();
     const winnerClass = isWinner > 0 ? 'card-winner' : '';
     const emoji = getCardEmoji(cardName);
@@ -271,9 +224,7 @@ function updateCardSlot(slotId, cardName, isWinner) {
     slot.innerHTML = '<div class="card ' + cardClass + ' ' + winnerClass + ' card-flip"><div class="card-image">' + emoji + '</div><div class="card-name">' + cardName + '</div></div>';
 }
 
-/**
- * Retourne l'emoji correspondant à la carte
- */
+
 function getCardEmoji(cardName) {
     const emojis = {
         'Mage': '🔮',
@@ -283,9 +234,7 @@ function getCardEmoji(cardName) {
     return emojis[cardName] || '❓';
 }
 
-/**
- * Affiche le résultat du tour
- */
+
 function showTurnResult(lastTurn, gameState) {
     const resultDiv = document.getElementById('turn-result');
     if (!resultDiv) return;
@@ -317,16 +266,12 @@ function showTurnResult(lastTurn, gameState) {
     resultDiv.style.animation = 'slideIn 0.5s ease-out';
 }
 
-/**
- * Met à jour la main du joueur
- */
 function updatePlayerHand(gameState) {
     const waiting = gameState.waiting_for;
     
     console.log('⏳ En attente de:', waiting, '| Joueur actuel:', currentPlayerNum);
     console.log('   🎮 Peut jouer:', (waiting === currentPlayerNum || waiting === 'both'));
     
-    //  Active/désactive les boutons selon le tour
     if (waiting === currentPlayerNum || waiting === 'both') {
         console.log('   ✅ Activation des boutons');
         enableCardButtons();
@@ -335,7 +280,6 @@ function updatePlayerHand(gameState) {
         disableAllButtons();
     }
     
-    // Gère le checkbox du Bouffon
     const jokerCheckbox = document.getElementById('use-joker');
     if (!jokerCheckbox) return;
     
@@ -350,9 +294,7 @@ function updatePlayerHand(gameState) {
     }
 }
 
-/**
- * Active les boutons de cartes
- */
+
 function enableCardButtons() {
     const buttons = document.querySelectorAll('.card-button');
     buttons.forEach(function(btn) {
@@ -364,9 +306,6 @@ function enableCardButtons() {
     console.log('✅ Boutons activés (' + buttons.length + ' boutons)');
 }
 
-/**
- * Désactive tous les boutons
- */
 function disableAllButtons() {
     const buttons = document.querySelectorAll('.card-button');
     buttons.forEach(function(btn) {
@@ -378,9 +317,6 @@ function disableAllButtons() {
     console.log('🚫 Boutons désactivés (' + buttons.length + ' boutons)');
 }
 
-/**
- * Affiche un message de statut
- */
 function showTurnMessage(message) {
     const statusDiv = document.getElementById('game-status');
     if (statusDiv) {
@@ -388,9 +324,7 @@ function showTurnMessage(message) {
     }
 }
 
-/**
- * Affiche le modal de fin de partie
- */
+
 function showEndGameModal(gameState) {
     const modal = document.getElementById('end-game-modal');
     const winnerText = document.getElementById('winner-text');
@@ -411,9 +345,6 @@ function showEndGameModal(gameState) {
     modal.style.display = 'flex';
 }
 
-/**
- * Affiche le formulaire de conversion de compte invité
- */
 function showConversionForm() {
     const form = document.getElementById('conversion-form');
     if (form) {
@@ -421,9 +352,6 @@ function showConversionForm() {
     }
 }
 
-/**
- * Convertit un compte invité en compte permanent
- */
 async function convertAccount() {
     const username = document.getElementById('new-username').value;
     const password = document.getElementById('new-password').value;
@@ -456,9 +384,6 @@ async function convertAccount() {
     }
 }
 
-/**
- * Démarre le polling de l'état du jeu
- */
 function startPolling() {
     pollingInterval = setInterval(function() {
         updateGameState();
@@ -466,9 +391,6 @@ function startPolling() {
     console.log('🔄 Polling démarré');
 }
 
-/**
- * Arrête le polling
- */
 function stopPolling() {
     if (pollingInterval) {
         clearInterval(pollingInterval);
@@ -477,9 +399,6 @@ function stopPolling() {
     }
 }
 
-/**
- * Nettoie le polling quand on quitte la page
- */
 window.addEventListener('beforeunload', function() {
     stopPolling();
 });
