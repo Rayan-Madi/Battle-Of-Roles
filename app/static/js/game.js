@@ -152,12 +152,12 @@ function updateScoreboard(gameState) {
     
     if (jokerP1) {
         jokerP1.textContent = gameState.joker_used_p1 ? 'Utilisé' : 'Disponible';
-        jokerP1.style.color = gameState.joker_used_p1 ? '#ef4444' : '#10b981';
+        jokerP1.style.color = gameState.joker_used_p1 ? '#ff2e3f' : '#3ddc97';
     }
-    
+
     if (jokerP2) {
         jokerP2.textContent = gameState.joker_used_p2 ? 'Utilisé' : 'Disponible';
-        jokerP2.style.color = gameState.joker_used_p2 ? '#ef4444' : '#10b981';
+        jokerP2.style.color = gameState.joker_used_p2 ? '#ff2e3f' : '#3ddc97';
     }
 }
 
@@ -247,14 +247,14 @@ function showTurnResult(lastTurn, gameState) {
     
     if (lastTurn.winner_id === null) {
         message = '⚖️ Égalité !';
-        color = '#94a3b8';
+        color = '#9b8f92';
     } else {
         const winnerName = lastTurn.winner_id === p1Id ? gameState.player1 : gameState.player2;
         message = '🏆 ' + winnerName + ' remporte le tour !';
-        
+
         const youWon = (lastTurn.winner_id === p1Id && currentPlayerNum === 1) ||
                        (lastTurn.winner_id === p2Id && currentPlayerNum === 2);
-        color = youWon ? '#10b981' : '#ef4444';
+        color = youWon ? '#3ddc97' : '#ff2e3f';
     }
     
     if (lastTurn.joker_used) {
@@ -336,8 +336,8 @@ function showEndGameModal(gameState) {
     const youWon = (gameState.score1 >= 3 && currentPlayerNum === 1) || 
                    (gameState.score2 >= 3 && currentPlayerNum === 2);
     
-    winnerText.textContent = youWon ? '🎉 Victoire ! 🎉' : '😢 Défaite';
-    winnerText.style.color = youWon ? '#10b981' : '#ef4444';
+    winnerText.textContent = youWon ? '⚔ Victoire ⚔' : 'Défaite';
+    winnerText.style.color = youWon ? '#3ddc97' : '#ff2e3f';
     
     finalScore1.textContent = gameState.score1;
     finalScore2.textContent = gameState.score2;
