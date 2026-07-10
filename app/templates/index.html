@@ -4,126 +4,93 @@
 
 {% block content %}
 <div class="home-container">
-    <div class="hero">
-        <h1 class="hero-title">⚔️ Battle of Roles ⚔️</h1>
-        <p class="hero-subtitle">Un duel de cartes stratégique épique</p>
-        
+
+    <section class="hero">
+        <div class="sigil" aria-hidden="true">
+            <svg viewBox="0 0 200 200" fill="none">
+                <circle cx="100" cy="100" r="96" stroke="rgba(193,18,31,.20)" stroke-width=".6" stroke-dasharray="3 7"/>
+                <circle cx="100" cy="100" r="74" stroke="rgba(193,18,31,.14)" stroke-width=".5"/>
+                <polygon points="100,32 159,134 41,134" stroke="rgba(193,18,31,.22)" stroke-width=".7" fill="none"/>
+                <polygon points="100,168 41,66 159,66" stroke="rgba(193,18,31,.12)" stroke-width=".6" fill="none"/>
+            </svg>
+        </div>
+
+        <div class="eyebrow">Trois rôles · Un trône</div>
+        <h1 class="hero-title">Battle of <span class="blood-word">Roles<span class="drip"></span></span></h1>
+        <p class="hero-subtitle">Chaque carte jouée est un serment. <b>Le premier à 3 victoires règne.</b></p>
+
         {% if current_user.is_authenticated %}
-            {# Utilisateur connecté : afficher le bouton "Jouer" #}
             <div class="welcome-message">
-                <h2>👋 Bienvenue, {{ current_user.username }} !</h2>
+                {{ current_user.username }}
+                <em>L'arène t'attend.</em>
             </div>
-            
+
             <div class="action-buttons">
-                <a href="{{ url_for('main.lobby') }}" class="btn btn-primary btn-large">
-                    🎮 Chercher une partie
-                </a>
-                <a href="{{ url_for('main.history') }}" class="btn btn-secondary">
-                    📜 Mon historique
-                </a>
-                <a href="{{ url_for('main.leaderboard') }}" class="btn btn-secondary">
-                    📊 Classement
-                </a>
-                <a href="{{ url_for('main.logout') }}" class="btn btn-ghost">
-                    🚪 Se déconnecter
-                </a>
+                <a href="{{ url_for('main.lobby') }}" class="btn btn-large">⚔ Entrer dans l'arène</a>
+                <a href="{{ url_for('main.history') }}" class="btn btn-secondary">Mon historique</a>
+                <a href="{{ url_for('main.leaderboard') }}" class="btn btn-secondary">Classement</a>
             </div>
         {% else %}
-            {# Utilisateur non connecté : afficher les boutons de connexion #}
             <div class="action-buttons">
-                <a href="{{ url_for('main.login') }}" class="btn btn-primary">
-                    🔐 Se connecter
-                </a>
-                <a href="{{ url_for('main.register') }}" class="btn btn-secondary">
-                    📝 S'inscrire
-                </a>
-                <a href="{{ url_for('main.guest_login') }}" class="btn btn-guest">
-                    👤 Jouer en invité
-                </a>
+                <a href="{{ url_for('main.login') }}" class="btn">⚔ Se connecter</a>
+                <a href="{{ url_for('main.register') }}" class="btn btn-secondary">S'inscrire</a>
+                <a href="{{ url_for('main.guest_login') }}" class="btn btn-guest">Jouer en invité</a>
             </div>
-            
+
             <div class="leaderboard-link">
-                <a href="{{ url_for('main.leaderboard') }}">📊 Voir le classement</a>
+                <a href="{{ url_for('main.leaderboard') }}">Contempler le panthéon des vainqueurs</a>
             </div>
         {% endif %}
-        
-        <div class="game-rules">
-            <h2>🎮 Règles du jeu</h2>
-            <div class="rules-grid">
-                <div class="rule-card">
-                    <h3>🔮 Ordre Normal</h3>
-                    <ul>
-                        <li>🐺 Loup bat 🔮 Mage</li>
-                        <li>🔮 Mage bat ⚔️ Chevalier</li>
-                        <li>⚔️ Chevalier bat 🐺 Loup</li>
-                    </ul>
-                </div>
-                
-                <div class="rule-card joker-card">
-                    <h3>🃏 Avec le Bouffon</h3>
-                    <p class="joker-warning">Ordre inversé !</p>
-                    <ul>
-                        <li>🐺 Loup perd contre 🔮 Mage</li>
-                        <li>🔮 Mage perd contre ⚔️ Chevalier</li>
-                        <li>⚔️ Chevalier perd contre 🐺 Loup</li>
-                    </ul>
-                </div>
+    </section>
+
+    <div class="section-label">L'arène des rôles</div>
+    <p class="section-sub">Survole-les. Ils te jaugent déjà.</p>
+
+    <div class="arena">
+        <div class="tcard mage" data-tilt>
+            <div class="face">
+                <span class="inner-frame"></span><span class="glare"></span>
+                <span class="tstat">I</span><span class="tstat b">I</span>
+                <div class="glyph">🔮</div>
+                <div class="tname">Mage</div>
+                <div class="telem">Consume le Chevalier</div>
             </div>
-            
-            <div class="other-rules">
-                <h3>📋 Règles supplémentaires</h3>
-                <ul>
-                    <li>🃏 Le Bouffon ne peut être joué qu'une seule fois</li>
-                    <li>🏆 Premier à 3 points gagne</li>
-                    <li>⚡ Choisissez votre carte à chaque tour</li>
-                </ul>
+        </div>
+        <div class="tcard chev" data-tilt>
+            <div class="face">
+                <span class="inner-frame"></span><span class="glare"></span>
+                <span class="tstat">II</span><span class="tstat b">II</span>
+                <div class="glyph">⚔️</div>
+                <div class="tname">Chevalier</div>
+                <div class="telem">Abat le Loup</div>
+            </div>
+        </div>
+        <div class="tcard loup" data-tilt>
+            <div class="face">
+                <span class="inner-frame"></span><span class="glare"></span>
+                <span class="tstat">III</span><span class="tstat b">III</span>
+                <div class="glyph">🐺</div>
+                <div class="tname">Loup</div>
+                <div class="telem">Dévore le Mage</div>
             </div>
         </div>
     </div>
+
+    <div class="joker-zone">
+        <div class="joker-panel">
+            <div class="jcard" aria-hidden="true">🃏</div>
+            <h3>Le Bouffon</h3>
+            <p>Une seule fois par partie, il retourne le monde : le cycle entier s'inverse.</p>
+            <span class="warn">À jouer au moment parfait</span>
+        </div>
+    </div>
+
+    <div class="section-label" style="margin-top:4.4rem">Le cycle du sang</div>
+    <div class="cycle">
+        <div class="cyc"><span class="who role-l">🐺 Loup</span><span class="kills">dévore</span><span class="who role-m">Mage 🔮</span></div>
+        <div class="cyc"><span class="who role-m">🔮 Mage</span><span class="kills">consume</span><span class="who role-c">Chevalier ⚔️</span></div>
+        <div class="cyc"><span class="who role-c">⚔️ Chevalier</span><span class="kills">abat</span><span class="who role-l">Loup 🐺</span></div>
+    </div>
+
 </div>
-
-<style>
-.welcome-message {
-    margin: 2rem 0;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
-}
-
-.welcome-message h2 {
-    color: white;
-    margin: 0;
-    font-size: 1.8rem;
-}
-
-.btn-large {
-    font-size: 1.5rem;
-    padding: 1.2rem 3rem;
-    font-weight: bold;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
-    }
-    50% {
-        transform: scale(1.05);
-        box-shadow: 0 12px 24px rgba(16, 185, 129, 0.5);
-    }
-}
-
-.btn-ghost {
-    background: transparent;
-    border: 2px solid #64748b;
-    color: #64748b;
-}
-
-.btn-ghost:hover {
-    background: #64748b;
-    color: white;
-}
-</style>
 {% endblock %}
